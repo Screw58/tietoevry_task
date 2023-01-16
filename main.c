@@ -24,9 +24,9 @@ int main(void)
   printf("Before creating the threads\n");
   threads_init();
 
-//	pthread_join(tid1,NULL);
-//	pthread_join(tid2,NULL);
-//	pthread_join(tid3,NULL);
+//	pthread_join(thread_Reader,NULL);
+//	pthread_join(thread_Analyzer,NULL);
+//	pthread_join(Thread_Printer,NULL);
 	
   sleep(RUNNING_TIME);
   /* ending condition is set */

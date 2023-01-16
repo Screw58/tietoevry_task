@@ -31,7 +31,7 @@ struct data_sys
 
 struct obj_type
 {
-   char *stringol;
+   char *file_line;
    char name[10];
    float result;
    struct data_sys actual;

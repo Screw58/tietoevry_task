@@ -21,7 +21,7 @@ static void calc_function(struct obj_type * ptr);
 int controller = 0;          //This variable is used to switching and synchronizing between threads functions
 int core_counter = 0;        //This variable count number of cores in /proc/stat file 
 
-struct obj_type * tablica_wsk[10];   //Contains pointers to objects (one core = one object)
+struct obj_type * tablica_wsk[10] = {NULL};   //Contains pointers to objects (one core = one object)
 
 extern int ENDING;
 
@@ -44,7 +44,6 @@ void threads_init(void)
         printf("Failed to create thread_Reader\n");
   if( pthread_create(&thread_Analyzer, NULL, Analyse_function, NULL) != 0 )
         printf("Failed to create thread_Analyzer\n");
-  // sleep(3);
   if( pthread_create(&Thread_Printer, NULL, Print_function, NULL) != 0 )
         printf("Failed to create Thread_Printer\n");
 }
@@ -64,12 +63,13 @@ void * Read_function(void *arg)
    UNUSED(arg);
    	
    char buf[100] ;
-    
-   //char * Parsepointer;
-   //int cstr =0;
+   int len = 3;         // "cpu" 
+   int string_counter;
+   char working_buf[4] ={0};
+   
    while(1)
    {
-      
+      /* waiting for enter to this thread */
       while(1)
       {
          if(controller == 0)
@@ -87,10 +87,9 @@ void * Read_function(void *arg)
       while(fgets( buf, sizeof(buf), fp) != NULL)
       {
          
-         char working_buf[4] ={0};
-	 int len = 3;
-	   
-	 int licznikstringa = 0;
+         memset(working_buf,0,sizeof(working_buf));
+	 
+	 string_counter = 0;
 	   
 	 /* copy first 3 letters("cpu") from lines to working buffer */
 	 for(int iterator = 0; iterator < len; iterator++)
@@ -101,21 +100,17 @@ void * Read_function(void *arg)
 	 /* check if the line of file begin on cpu name */
 	 if( !(strcmp(working_buf, "cpu")))
 	 {
-	     /* if yes allocate memory and create cpu object */
-	     //printf("strcmp working_buf: %s\n", buf);
-	     licznikstringa = strlen(buf);
-	     licznikstringa += 1;
-	     //printf("licznikstringa: %d\n", licznikstringa);
+	     /* if yes, allocate memory and create cpu object */
+	     string_counter = strlen(buf);
+	     string_counter += 1;
 	     tablica_wsk[core_counter] = (struct obj_type*) malloc( sizeof(struct obj_type));
-	     tablica_wsk[core_counter]->stringol = NULL;
-	     tablica_wsk[core_counter]->stringol = (char*) malloc( licznikstringa*sizeof(char) );
+	     tablica_wsk[core_counter]->file_line = NULL;
+	     tablica_wsk[core_counter]->file_line = (char*) malloc( string_counter*sizeof(char) );
 	     
-	     printf("\ntablica wsk drukuje pointera: %p\n", tablica_wsk[core_counter]->stringol);
 	     /*copy string from buffer to memory which is pointing by object */   
-	     strcpy(tablica_wsk[core_counter]->stringol, buf);
-	   	  
-	     printf("tablica wskaznikowa printuje stringol: %s\n", tablica_wsk[core_counter]->stringol);
-	     /* increase to the enxt object */
+	     strcpy(tablica_wsk[core_counter]->file_line, buf);
+
+	     /* increase to the next object */
 	     core_counter++;
 	 }		
       }
@@ -135,8 +130,6 @@ void * Read_function(void *arg)
    }
 }
 
-//=======================================================================================================================================
-
 
 /*
 * description: Analyse and prepare data to calculate cpu usage,
@@ -151,10 +144,13 @@ void * Read_function(void *arg)
 
 void * Analyse_function(void *arg)
 {
-    UNUSED(arg);						//add
+   
+   UNUSED(arg);						
    
    char * Parsepointer;
    int cstr =0;
+   char parse_buf[100];
+   
    while(1)
    {
       /* waiting for enter to this thread */
@@ -167,11 +163,11 @@ void * Analyse_function(void *arg)
       /* repeat below code for each core */
       for(int num = 0; num < core_counter; num++)
       {
-         char fty_buf[100];
-         strcpy(fty_buf , tablica_wsk[num]->stringol);
+         memset(parse_buf,0,sizeof(parse_buf));
+         strcpy(parse_buf , tablica_wsk[num]->file_line);
          /* read and assign core name from string */
          Parsepointer = NULL;   	
-         Parsepointer = strtoke(fty_buf, " ");
+         Parsepointer = strtoke(parse_buf, " ");
 	 strcpy(tablica_wsk[num]->name, Parsepointer);
 	 
 	 cstr = 0;
@@ -213,8 +209,6 @@ void * Analyse_function(void *arg)
 
 
 
-//===================================================================
-
 
 /*
 * description: Print CPU usage for each core
@@ -238,20 +232,19 @@ void * Analyse_function(void *arg)
              break;
        } 
        
+     
     /* Print information for each core */
+    printf("\n=============================================\n");
     for(int num = 0; num < core_counter; num++)
-    {
-       printf("\n=============================================\n");
-       printf("The %s usage percentage is equal to %f\n", tablica_wsk[num]->name, tablica_wsk[num]->result);
-       printf("=============================================\n");
+    {       
+       printf("The %s usage percentage is equal to %f\n", tablica_wsk[num]->name, tablica_wsk[num]->result);  
        
-       //free(tablica_wsk[num]->stringol);
-       printf("poka stringa: %s\n", tablica_wsk[num]->stringol);
-       printf("stringol przed zwolnieniem: %p\n", tablica_wsk[num]->stringol);
-       //free(tablica_wsk[num]->stringol);
+        /* freeing allocated memory */ 
+       //free(tablica_wsk[num]->file_line); 
        free(tablica_wsk[num]);
     }  
-	     
+    printf("=============================================\n");     
+    
     /* refresh rate */
     sleep(REFRESH_RATE);
     
@@ -261,11 +254,12 @@ void * Analyse_function(void *arg)
     /*check ending condition */
     if(ENDING)
        pthread_exit(NULL);
-}
-}
+    }
+ }
 
 
 /*=================== helped functions ===================*/
+
 
 /*
 * description: Calculate usage, basic on the object data
@@ -301,7 +295,7 @@ static void calc_function(struct obj_type * ptr)
 *
 * details: This function is an alternative for strtok;
 *          compared to strtok, strtoke may return an empty string
-*
+*          Source: stackoverflow.com
 *  param[in/out]: none
 *  return: none
 */ 
