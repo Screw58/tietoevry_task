@@ -1,5 +1,5 @@
 
-/* ============================== includes ============================== */
+/*======================= includes =======================*/
 #include <unistd.h>
 #include <sys/types.h>
 #include <errno.h>
@@ -9,10 +9,14 @@
 #include <string.h>
 #include <semaphore.h>
 
+/*======================= defines =======================*/
 
+#define REFRESH_RATE	1
+#define RUNNING_TIME	5
+
+/*===================== prototypes ======================*/
 struct data_sys
-{
-	char name[10];
+{	
 	int user;
 	int nice;
 	int system;
@@ -25,11 +29,18 @@ struct data_sys
 	int guest_nice;
 };
 
-/* ======================== function prototypes ======================== */
+struct obj_type
+{
+   char *stringol;
+   char name[10];
+   float result;
+   struct data_sys actual;
+   struct data_sys prev;
+};
+/*================== function prototypes ==================*/
 
 extern void * Read_function(void *arg);
 extern void * Analyse_function(void *arg);
 extern void * Print_function(void *arg);
 void threads_init(void);
-char* strtoke(char *str, const char *delim);
-void calc_function(void);
+
