@@ -13,7 +13,7 @@
 
 #define REFRESH_RATE	1
 #define RUNNING_TIME	5
-
+#define UNUSED(x)       (void)(x)
 /*===================== prototypes ======================*/
 struct data_sys
 {	

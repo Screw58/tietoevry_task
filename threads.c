@@ -11,6 +11,10 @@
 /*======================== includes ========================*/
 #include "main.h"
 
+/*====================== declarations ======================*/
+static char* strtoke(char *str, const char *delim);
+static void calc_function(struct obj_type * ptr);
+
 
 /*==================== global variables ====================*/
 
@@ -21,8 +25,6 @@ struct obj_type * tablica_wsk[10];   //Contains pointers to objects (one core = 
 
 extern int ENDING;
 
-static char* strtoke(char *str, const char *delim);
-static void calc_function(struct obj_type * ptr);
 /*=================== threads functions ===================*/
 
 
@@ -59,7 +61,8 @@ void threads_init(void)
 
 void * Read_function(void *arg)
 {
-   (void) arg;	
+   UNUSED(arg);
+   	
    char buf[100] ;
     
    //char * Parsepointer;
@@ -148,7 +151,7 @@ void * Read_function(void *arg)
 
 void * Analyse_function(void *arg)
 {
-    (void) arg;							//add
+    UNUSED(arg);						//add
    
    char * Parsepointer;
    int cstr =0;
@@ -224,7 +227,8 @@ void * Analyse_function(void *arg)
 
  void * Print_function(void *arg)
  {
-    (void) arg;	
+    UNUSED(arg);
+    	
     while(1)
     {
        /* waiting for enter to this thread */
@@ -244,7 +248,7 @@ void * Analyse_function(void *arg)
        //free(tablica_wsk[num]->stringol);
        printf("poka stringa: %s\n", tablica_wsk[num]->stringol);
        printf("stringol przed zwolnieniem: %p\n", tablica_wsk[num]->stringol);
-       free(tablica_wsk[num]->stringol);
+       //free(tablica_wsk[num]->stringol);
        free(tablica_wsk[num]);
     }  
 	     
